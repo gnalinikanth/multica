@@ -72,8 +72,9 @@ The frontend proxies all API, WebSocket, auth, and upload requests to the backen
 | `REDIS_URL` | Redis for rate limiting (optional) |
 | `GITHUB_APP_SLUG` / `GITHUB_WEBHOOK_SECRET` | GitHub App integration |
 
-4. Click **Deploy**. The entrypoint automatically runs database migrations before starting the server.
-5. Health check: Railway polls `GET /live` and waits up to 300 s for a `200 OK`.
+4. In **Service → Settings → Build**, set **Dockerfile Path** → `Dockerfile` and **Build Context** → `/`.
+5. In **Service → Settings → Deploy**, set **Health Check Path** → `/live` and **Health Check Timeout** → `300`.
+6. Click **Deploy**. The entrypoint automatically runs database migrations before starting the server.
 
 ---
 
