@@ -1,14 +1,33 @@
 # Railway deploy configuration — shared by all services in this repo.
 #
-# The [build] section is intentionally omitted. Both the backend (Dockerfile)
-# and the frontend (Dockerfile.web) services point at this same repository
-# root, so the Dockerfile path MUST be set per-service in the Railway
-# dashboard (Service → Settings → Build → Dockerfile Path) rather than here.
-# Putting a [build] block here would force the Go Dockerfile on every service,
-# breaking the Node.js/pnpm frontend build.
+# WHY [build] IS ABSENT
+# Both the backend (Dockerfile) and frontend (Dockerfile.web) services point
+# at this same repository root, so each service's Dockerfile MUST be set in
+# the Railway dashboard (Service → Settings → Build → Dockerfile Path).
+# A [build] block here would force one Dockerfile on every service.
+#
+# WHY startCommand IS SET HERE
+# apps/web/package.json has a "start" script ("next start"). Railway's
+# auto-detection converts this into "pnpm --filter @multica/web start" and
+# sets it as the dashboard start command, which then overrides the
+# Dockerfile CMD. The minimal standalone runtime image (node:22-alpine with
+# only the pre-built server.js) has no pnpm and no Next.js CLI, so that
+# command fails immediately.
+#
+# Setting startCommand here locks the correct command and takes precedence
+# over any dashboard value or auto-detected value.
+#
+# Frontend (Dockerfile.web — no ENTRYPOINT):
+#   Docker runs: node apps/web/server.js   ← correct
+#
+# Backend (Dockerfile — ENTRYPOINT = ./entrypoint.sh):
+#   Docker runs: ./entrypoint.sh node apps/web/server.js
+#   entrypoint.sh never references $@ so the extra argument is silently
+#   ignored; migrations run and the Go server starts exactly as before.
 #
 # See RAILWAY.md for the full step-by-step deployment guide.
 
 [deploy]
+startCommand = "node apps/web/server.js"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
